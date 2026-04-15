@@ -1,5 +1,29 @@
-// Single Grain Hackathon - Real-time sync
+// Single Grain Hackathon - Real-time sync with tabs
 (function() {
+    // Tab functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanels.forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            localStorage.setItem('sg-hackathon-tab', tabId);
+        });
+    });
+
+    // Restore last tab
+    const savedTab = localStorage.getItem('sg-hackathon-tab');
+    if (savedTab) {
+        const btn = document.querySelector(`[data-tab="${savedTab}"]`);
+        if (btn) btn.click();
+    }
     const STORAGE_KEY = 'sg-hackathon-data';
     const API_URL = '/api/sync';
     const saveStatus = document.getElementById('saveStatus');

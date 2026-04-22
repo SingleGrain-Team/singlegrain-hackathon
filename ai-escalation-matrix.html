@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Escalation Matrix — Single Grain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-light: #EEEDFE; --purple-mid: #534AB7; --purple-dark: #3C3489;
+    --green-light: #EAF3DE; --green-dark: #3B6D11;
+    --yellow-light: #FAEEDA; --yellow-dark: #854F0B; --yellow-text: #633806;
+    --red-light: #FCEBEB; --red-dark: #A32D2D;
+    --gray-light: #F4F3EF; --gray-mid: #8C8B84; --gray-dark: #3A3A38;
+    --teal-light: #E1F5EE; --teal-dark: #085041;
+    --border: #E0DFD8; --text: #1A1A18; --text-muted: #6B6B66;
+    --bg: #FAFAF8; --card-bg: #FFFFFF;
+    --font: 'DM Sans', sans-serif; --mono: 'DM Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+  .header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .org-tag { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: var(--purple-mid); background: var(--purple-light); padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+  .header-meta { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .updated { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .section-label { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 12px; }
+  .caveat { background: var(--purple-light); border: 1px solid #C5C1F0; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+  .caveat-title { font-size: 13px; font-weight: 600; color: var(--purple-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .caveat-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--purple-mid); flex-shrink: 0; }
+  .caveat-body { font-size: 13px; color: var(--purple-mid); line-height: 1.6; margin-bottom: 10px; }
+  .caveat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px; }
+  .pill-green { background: var(--green-light); color: var(--green-dark); }
+  .pill-yellow { background: var(--yellow-light); color: var(--yellow-dark); }
+  .pill-red { background: var(--red-light); color: var(--red-dark); }
+  .ai-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem; overflow: hidden; }
+  .ai-pills-row { display: flex; border-bottom: 1px solid var(--border); }
+  .ai-tool { flex: 1; padding: 14px 16px; display: flex; align-items: flex-start; gap: 10px; border-right: 1px solid var(--border); }
+  .ai-tool:last-child { border-right: none; }
+  .tool-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .dot-claude { background: #534AB7; } .dot-hermes { background: #3C3489; } .dot-alfred { background: #0F6E56; }
+  .tool-name { font-size: 13px; font-weight: 600; }
+  .tool-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-top: 1px; }
+  .ai-note { padding: 12px 16px; font-size: 13px; color: var(--text-muted); line-height: 1.6; background: var(--gray-light); }
+  .ai-note strong { color: var(--text); font-weight: 500; }
+  .spectrum { display: flex; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 2rem; }
+  .zone { flex: 1; padding: 14px 16px; border-right: 1px solid rgba(0,0,0,0.07); }
+  .zone:last-child { border-right: none; }
+  .zone-label { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .zone-desc { font-size: 12px; line-height: 1.4; }
+  .zone-purple { background: var(--purple-light); } .zone-purple .zone-label, .zone-purple .zone-desc { color: var(--purple-dark); }
+  .zone-green { background: var(--green-light); } .zone-green .zone-label, .zone-green .zone-desc { color: var(--green-dark); }
+  .zone-yellow { background: var(--yellow-light); } .zone-yellow .zone-label { color: var(--yellow-dark); } .zone-yellow .zone-desc { color: var(--yellow-text); }
+  .zone-red { background: var(--red-light); } .zone-red .zone-label, .zone-red .zone-desc { color: var(--red-dark); }
+  .matrix-wrap { overflow-x: auto; margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+  thead tr { background: var(--gray-light); }
+  th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; vertical-align: top; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #FAFAF6; }
+  .blocker-name { font-weight: 600; font-size: 13px; }
+  .blocker-ex { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .c-purple { background: var(--purple-light); color: var(--purple-dark); border-radius: 6px; padding: 6px 8px; font-size: 12px; line-height: 1.5; }
+  .c-green { background: var(--green-light); color: var(--green-dark); border-radius: 6px; padding: 6px 8px; font-size: 12px; line-height: 1.5; }
+  .c-yellow { background: var(--yellow-light); color: var(--yellow-text); border-radius: 6px; padding: 6px 8px; font-size: 12px; line-height: 1.5; }
+  .c-red { background: var(--red-light); color: var(--red-dark); border-radius: 6px; padding: 6px 8px; font-size: 12px; line-height: 1.5; }
+  .c-gray { background: var(--gray-light); color: var(--gray-mid); border-radius: 6px; padding: 6px 8px; font-size: 12px; line-height: 1.5; font-style: italic; }
+  .routing { background: var(--gray-light); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; }
+  .routing-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .routing-steps { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .rt-step { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; font-size: 12px; line-height: 1.4; }
+  .rt-arrow { color: var(--gray-mid); font-size: 16px; flex-shrink: 0; }
+  .rt-stop { background: var(--red-light); border-color: #F0B0B0; color: var(--red-dark); }
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 2rem; }
+  .tip { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tip-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .tip-body { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 2rem; }
+  .role-card { border-radius: 10px; padding: 14px 16px; border: 1px solid transparent; }
+  .role-tag { font-size: 11px; font-weight: 600; display: inline-block; margin-bottom: 6px; padding: 2px 8px; border-radius: 20px; }
+  .role-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .role-card ul { list-style: none; font-size: 13px; line-height: 1.8; }
+  .role-card ul li::before { content: "→ "; opacity: 0.5; }
+  .role-purple { background: var(--purple-light); border-color: #C5C1F0; }
+  .role-purple .role-tag { background: white; color: var(--purple-dark); }
+  .role-purple h3, .role-purple ul { color: var(--purple-dark); }
+  .role-teal { background: var(--teal-light); border-color: #9FE1CB; }
+  .role-teal .role-tag { background: white; color: var(--teal-dark); }
+  .role-teal h3, .role-teal ul { color: var(--teal-dark); }
+  .role-red { background: var(--red-light); border-color: #F0B0B0; }
+  .role-red .role-tag { background: white; color: var(--red-dark); }
+  .role-red h3, .role-red ul { color: var(--red-dark); }
+  .footer { border-top: 1px solid var(--border); padding-top: 1.5rem; font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  section { margin-bottom: 2.5rem; }
+  @media (max-width: 700px) {
+    .ai-pills-row { flex-direction: column; } .ai-tool { border-right: none; border-bottom: 1px solid var(--border); }
+    .spectrum { flex-direction: column; } .zone { border-right: none; border-bottom: 1px solid rgba(0,0,0,0.07); }
+    .tips-grid, .role-grid { grid-template-columns: 1fr; } h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <div class="org-tag">Single Grain</div>
+    <div class="header-top">
+      <div>
+        <h1>AI escalation matrix</h1>
+        <p class="header-meta">For service teams — Sales, Ops, SEO, Paid, Creative</p>
+        <p class="updated">Apply green / yellow / red logic at every step, including AI outputs</p>
+      </div>
+    </div>
+  </header>
+  <section>
+    <p class="section-label">Before you start</p>
+    <div class="caveat">
+      <div class="caveat-title">Claude, Hermes, and Alfred do not guarantee 100% accuracy</div>
+      <p class="caveat-body">Treat AI outputs like a colleague's first draft: useful, worth building on, but requiring your judgment before you act. The same green / yellow / red logic that governs human escalation applies to everything AI gives you. If the output looks off, feels too confident, or touches anything consequential — apply common sense before proceeding.</p>
+      <div class="caveat-pills">
+        <span class="pill pill-green">Green: output makes sense — proceed</span>
+        <span class="pill pill-yellow">Yellow: plausible but uncertain — verify first</span>
+        <span class="pill pill-red">Red: touches client data or prod — confirm with a human</span>
+      </div>
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Ask AI first</p>
+    <div class="ai-card">
+      <div class="ai-pills-row">
+        <div class="ai-tool"><div class="tool-dot dot-claude"></div><div class="tool-info"><div class="tool-name">Claude</div><div class="tool-desc">Reasoning, research, writing, code — available to everyone</div></div></div>
+        <div class="ai-tool"><div class="tool-dot dot-hermes"></div><div class="tool-info"><div class="tool-name">Hermes</div><div class="tool-desc">Strategy, analysis, adaptive problem-solving</div></div></div>
+        <div class="ai-tool"><div class="tool-dot dot-alfred"></div><div class="tool-info"><div class="tool-name">Alfred</div><div class="tool-desc">Automated workflows and agent fleet execution at scale</div></div></div>
+      </div>
+      <div class="ai-note"><strong>Which to use:</strong> Start with whatever AI you have access to. For conversational problem-solving, research, or debugging — Claude or Hermes. For executing defined, repeatable workflows across multiple assets — Alfred. When in doubt, describe the problem to Claude first. <strong>Note: engineers cannot help troubleshoot Hermes or Alfred directly.</strong> If those agents aren't working, be prepared to fall back to Claude to accomplish the same goal a different way. <strong>Always spot-check outputs</strong> before using them in client work or passing them to another system.</div>
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Escalation spectrum</p>
+    <div class="spectrum">
+      <div class="zone zone-purple"><div class="zone-label">Ask AI first</div><div class="zone-desc">Claude / Hermes / Alfred. Use what you have access to.</div></div>
+      <div class="zone zone-green"><div class="zone-label">Self-resolve first</div><div class="zone-desc">AI didn't unblock you. Try up to 30 min before pulling in a human.</div></div>
+      <div class="zone zone-yellow"><div class="zone-label">Try once, then escalate</div><div class="zone-desc">One attempt OK. Stop if it touches permissions, data, or prod.</div></div>
+      <div class="zone zone-red"><div class="zone-label">Escalate immediately</div><div class="zone-desc">Don't attempt. Workarounds here create real risk. Tag an engineer now.</div></div>
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Blocker type matrix</p>
+    <div class="matrix-wrap">
+      <table>
+        <thead><tr><th style="width:18%">Blocker type</th><th style="width:25%">Ask AI first</th><th style="width:19%">Self-resolve first</th><th style="width:19%">Try once, then escalate</th><th style="width:19%">Escalate immediately</th></tr></thead>
+        <tbody>
+          <tr><td><div class="blocker-name">Tooling or setup</div><div class="blocker-ex">API keys, installs, config files</div></td><td><div class="c-purple">Ask AI to walk through setup or debug the config. Verify steps before running them.</div></td><td><div class="c-green">Docs exist? Follow them. Stuck after 30 min? Escalate.</div></td><td><div class="c-yellow">Key works but scope seems wrong. Confirm before proceeding.</div></td><td><div class="c-red">Credential belongs to a client or shared prod system.</div></td></tr>
+          <tr><td><div class="blocker-name">Access / permissions</div><div class="blocker-ex">Can't reach a file, account, dataset</div></td><td><div class="c-purple">Ask AI to help identify what access you actually need before requesting it.</div></td><td><div class="c-green">Request access via standard channel. Follow up after 30 min if no response.</div></td><td><div class="c-yellow">Access granted but scope is unclear. Confirm before use.</div></td><td><div class="c-red">Workaround bypasses a permission gate. Stop entirely.</div></td></tr>
+          <tr><td><div class="blocker-name">Data / output looks wrong</div><div class="blocker-ex">Unexpected results, null values, errors</div></td><td><div class="c-purple">Paste the output to AI. It can diagnose and suggest a fix — apply the yellow check: does the diagnosis actually make sense?</div></td><td><div class="c-green">Check inputs, re-run, search error message. Document what you tried.</div></td><td><div class="c-yellow">Results look plausible but off. Flag before building on top of them.</div></td><td><div class="c-red">Data mismatch involves client PII or billing data.</div></td></tr>
+          <tr><td><div class="blocker-name">Prompt / AI behavior</div><div class="blocker-ex">Model not doing what you expect</div></td><td><div class="c-purple">Ask Claude directly — it can rework the prompt. This is expected iteration, not a blocker.</div></td><td><div class="c-green">Still stuck after several attempts? Ask a peer before pulling in eng.</div></td><td><div class="c-gray">Rarely an eng issue unless it's an API/infra problem.</div></td><td><div class="c-gray">Almost never requires immediate escalation.</div></td></tr>
+          <tr><td><div class="blocker-name">Workflow execution</div><div class="blocker-ex">Task needs to run across assets or at scale</div></td><td><div class="c-purple">Describe the task to AI. Defined and repeatable? Route to Alfred. Spot-check output. If Alfred unavailable, Claude can often accomplish the same goal differently.</div></td><td><div class="c-green">If AI can't run it, document the failure before trying manually.</div></td><td><div class="c-yellow">Hitting rate limits or timeouts. Document and flag to eng.</div></td><td><div class="c-red">Failure is in a shared service or upstream client workflow.</div></td></tr>
+          <tr><td><div class="blocker-name">Integration / pipeline</div><div class="blocker-ex">Webhook fails, data doesn't flow between tools</div></td><td><div class="c-purple">Ask AI to read error logs and suggest a fix. Don't run a suggested command you don't understand.</div></td><td><div class="c-green">Check auth, test with a sample payload.</div></td><td><div class="c-yellow">Flow works but behaving unexpectedly. Document first.</div></td><td><div class="c-red">Failure is in a shared service or upstream client workflow.</div></td></tr>
+          <tr><td><div class="blocker-name">Security / compliance signal</div><div class="blocker-ex">Exposed key, unexpected auth prompt, tool warning</div></td><td><div class="c-purple">On every new project: ask AI to do a security audit and flag any privacy or compliance issues before going further.</div></td><td><div class="c-gray">No self-resolve path once a signal fires.</div></td><td><div class="c-gray">No "try once" path either.</div></td><td><div class="c-red">Stop. Tag eng + ops immediately. Don't document in Slack.</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Routing test — not sure where to start?</p>
+    <div class="routing">
+      <div class="routing-title">Run through these in order</div>
+      <div class="routing-steps">
+        <div class="rt-step">Can you describe the problem in a sentence?</div><span class="rt-arrow">→</span>
+        <div class="rt-step">Ask AI first (Claude / Hermes / Alfred)</div><span class="rt-arrow">→</span>
+        <div class="rt-step">Does the output pass a common sense check?</div><span class="rt-arrow">→</span>
+        <div class="rt-step">Still blocked after 30 min?</div><span class="rt-arrow">→</span>
+        <div class="rt-step">Does it touch a shared system or client data?</div><span class="rt-arrow">→</span>
+        <div class="rt-step rt-stop">Yes to any: escalate to eng</div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Quick tips</p>
+    <div class="tips-grid">
+      <div class="tip"><div class="tip-title">Be creative with prompting</div><div class="tip-body">Think outside the box — if you're not getting what you need, ask the same question several different ways before giving up.</div></div>
+      <div class="tip"><div class="tip-title">Come prepared when you escalate</div><div class="tip-body">Bring screenshots, copied text, and a summary of what you already tried. Engineers can help faster when you've done the legwork.</div></div>
+      <div class="tip"><div class="tip-title">Run a security audit on every new tool</div><div class="tip-body">Before going deep on any new project or integration, ask AI to review it for privacy or compliance issues.</div></div>
+      <div class="tip"><div class="tip-title">Make it simpler</div><div class="tip-body">If AI gives you a highly technical response you don't fully understand, say "explain this more simply" — keep asking until it clicks.</div></div>
+    </div>
+  </section>
+  <section>
+    <p class="section-label">Role notes</p>
+    <div class="role-grid">
+      <div class="role-card role-purple"><span class="role-tag">Sales + Ops</span><h3>AI is your first stop, not eng</h3><ul><li>Most analytical and research blockers AI can handle</li><li>Use the 30-min rule before pinging a human</li><li>If an output feels off, trust that instinct</li></ul></div>
+      <div class="role-card role-teal"><span class="role-tag">SEO + Paid + Creative</span><h3>AI can scale what's already working</h3><ul><li>Platform errors are usually config, not code — ask AI</li><li>Always spot-check AI output before using it in client work</li><li>Access issues: ops first, then eng</li></ul></div>
+      <div class="role-card role-red"><span class="role-tag">Everyone</span><h3>Hard stops that apply to all roles</h3><ul><li>Any exposed credential: stop and tag eng</li><li>Client data somewhere unexpected: stop</li><li>AI output touching prod or client deliverables: human review required</li></ul></div>
+    </div>
+  </section>
+  <footer class="footer"><span>Single Grain — AI escalation matrix</span><span>singlegrain.com</span></footer>
+</div>
+</body>
+</html>
